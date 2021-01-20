@@ -8,14 +8,14 @@ class Encoder(nn.Module):
         super().__init__()
         self.conv = nn.Conv2d(1, 16, 3, 1, 1, bias=False)
         self.bn = nn.BatchNorm2d(16)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         self.layer1 = BasicLayer(n, 16)
         self.layer2 = ContractingLayer(n, 16)
         self.layer3 = ContractingLayer(n, 32)
         self.avgpool = nn.AvgPool2d(8)
         
     def forward(self, x):
-        x = self.relu(self.bn(self.conv(x)))
+        x = self.act(self.bn(self.conv(x)))
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -28,7 +28,7 @@ class Decoder(nn.Module):
         super().__init__()
         self.fc = nn.Linear(64, 64 * 8 * 8)
         self.bn = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         self.layer1 = ExpansiveLayer(n, 64, 8)
         self.layer2 = ExpansiveLayer(n, 32, 16)
         self.layer3 = BasicLayer(n, 16)
@@ -36,7 +36,7 @@ class Decoder(nn.Module):
         
     def forward(self, x):
         x = self.fc(x).reshape(-1, 64, 8, 8)
-        x = self.relu(self.bn(x))
+        x = self.act(self.bn(x))
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -48,12 +48,14 @@ class AutoEncoder(nn.Module):
         super().__init__()
         self.encoder = Encoder(n)
         self.decoder = Decoder(n)
-        self.relu = nn.ReLU()
+        self.ln = nn.LayerNorm(64)
+        self.act = nn.GELU()
         self.apply(init_params)
 
     def forward(self, x):
         x = self.encoder(x)
-        x = self.relu(x)
+        x = self.ln(x)
+        x = self.act(x)
         x = self.decoder(x)
         return x
 
@@ -62,7 +64,7 @@ class Classifier(nn.Module):
         super().__init__()
         self.encoder = Encoder(n)
         self.ln = nn.LayerNorm(64)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         self.fc = nn.Linear(64, num_classes)
         self.dropout = nn.Dropout(0.20)
 
@@ -70,7 +72,7 @@ class Classifier(nn.Module):
         x = self.encoder(x)
         x = self.ln(x)
         x = self.dropout(x)
-        x = self.relu(x)
+        x = self.act(x)
         x = self.fc(x)
         return x
 

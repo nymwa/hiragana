@@ -8,7 +8,7 @@ class SE(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc1 = nn.Linear(channels, channels // reduction, bias = False)
         self.fc2 = nn.Linear(channels // reduction, channels, bias = False)
-        self.act1 = nn.ReLU()
+        self.act1 = nn.GELU()
         self.act2 = nn.Sigmoid()
 
     def forward(self, x):
@@ -27,13 +27,13 @@ class AbstractBlock(nn.Module):
         super().__init__()
         
     def block(self, x):
-        x = self.relu(self.bn1(self.conv1(x)))
+        x = self.act(self.bn1(self.conv1(x)))
         x = self.se(self.bn2(self.conv2(x)))
         return x
     
     def forward(self, x):
         x = self.sample(x) + self.block(x)
-        x = self.relu(x)
+        x = self.act(x)
         return x
 
 class BasicBlock(AbstractBlock):
@@ -44,7 +44,7 @@ class BasicBlock(AbstractBlock):
         self.bn1 = nn.BatchNorm2d(channels)
         self.bn2 = nn.BatchNorm2d(channels)
         self.se = SE(channels, 16)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         
     def sample(self, x):
         return x
@@ -57,7 +57,7 @@ class ContractingBlock(AbstractBlock):
         self.bn1 = nn.BatchNorm2d(channels * 2)
         self.bn2 = nn.BatchNorm2d(channels * 2)
         self.se = SE(channels * 2, 16)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         self.sample = DownSample(channels, channels * 2, 2)
 
 class ExpansiveBlock(AbstractBlock):
@@ -69,6 +69,6 @@ class ExpansiveBlock(AbstractBlock):
         self.bn1 = nn.BatchNorm2d(channels // 2)
         self.bn2 = nn.BatchNorm2d(channels // 2)
         self.se = SE(channels // 2, 16)
-        self.relu = nn.ReLU()
+        self.act = nn.GELU()
         self.sample = UpSample(channels, channels // 2, 2)
 

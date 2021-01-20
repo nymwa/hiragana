@@ -21,6 +21,7 @@ def make_model(path = None):
         pretrained = AutoEncoder()
         pretrained.load_state_dict(torch.load(path,  map_location='cpu'))
         model.encoder = pretrained.encoder
+        model.ln = pretrained.ln
     model = model.cuda()
     print(sum(p.numel() for p in model.parameters()))
     return model
@@ -66,7 +67,7 @@ def main():
         test_loss = criterion(test_pred, test_trg)
         test_accuracy = accuracy(test_pred, test_trg)
 
-        print('epoch {}: train_loss {:.3f}, valid_loss {:.3f}, train_accuracy: {:.3f}, valid_accuracy: {:.3f}, test_accuracy: {:.3f}, total_norm: {:.3f}'.format(
+        print('epoch {}: train_loss: {:.3f}, valid_loss: {:.3f}, train_accuracy: {:.3f}, valid_accuracy: {:.3f}, test_accuracy: {:.3f}, total_norm: {:.3f}'.format(
             epoch, train_loss, valid_loss, train_accuracy, valid_accuracy, test_accuracy, total_norm))
         # torch.save(model.state_dict(), 'checkpoints/finetune{}.pt'.format(epoch))
 
