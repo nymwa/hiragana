@@ -1,13 +1,15 @@
 # hiragana
 
-environment: python 3.8.3 & python 1.7.1
+environment: python 3.8.3 & pytorch 1.7.1
 
 1. run `download.sh`
 
-2. run `prepare.py`
+2. run `pip install -e .`
 
-3. run `pretrain.py`
+3. run `prepare.py`
 
-4. run `preprocess.py`
+4. run `pretrain.py`
 
-5. run `finetune.py`
+5. run `preprocess.py`
+
+6. run `finetune.py`
